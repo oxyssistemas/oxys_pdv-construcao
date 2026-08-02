@@ -66,14 +66,18 @@ function buildNav(session: SessionInfo | undefined): NavGroup[] {
   groups.push({
     title: "Operação",
     items: [
+      { label: "Produtos", to: "/produtos", icon: Package },
+      { label: "Estoque", to: "/estoque", icon: Boxes },
+      { label: "Fornecedores", to: "/fornecedores", icon: Truck },
+      { label: "Clientes", to: "/clientes", icon: Contact },
       { label: "PDV", icon: ShoppingCart, soon: true },
-      { label: "Produtos", icon: Package, soon: true },
-      { label: "Estoque", icon: Boxes, soon: true },
       { label: "Financeiro", icon: Wallet, soon: true },
       { label: "Compras", icon: CreditCard, soon: true },
       { label: "Relatórios", icon: BarChart3, soon: true },
     ],
   });
+
+
 
   return groups;
 }
