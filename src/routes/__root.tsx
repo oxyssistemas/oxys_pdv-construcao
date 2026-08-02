@@ -111,7 +111,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body data-label="faça a integração com o supabase e gere as migrations">
+      <body data-label="Integre o app com o Supabase para autenticação e acesso multi-tenant.">
         {children}
         <Scripts />
       </body>
