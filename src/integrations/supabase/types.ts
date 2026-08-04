@@ -64,6 +64,72 @@ export type Database = {
           },
         ]
       }
+      cash_registers: {
+        Row: {
+          branch_id: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closing_amount: number | null
+          company_id: string
+          created_at: string
+          expected_amount: number
+          id: string
+          notes: string | null
+          opened_at: string
+          opened_by: string | null
+          opening_amount: number
+          status: Database["public"]["Enums"]["register_status"]
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_amount?: number | null
+          company_id: string
+          created_at?: string
+          expected_amount?: number
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          opening_amount?: number
+          status?: Database["public"]["Enums"]["register_status"]
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_amount?: number | null
+          company_id?: string
+          created_at?: string
+          expected_amount?: number
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          opening_amount?: number
+          status?: Database["public"]["Enums"]["register_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_registers_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_registers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           address: string | null
@@ -352,6 +418,195 @@ export type Database = {
         }
         Relationships: []
       }
+      sale_items: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string
+          discount: number
+          id: string
+          product_id: string | null
+          quantity: number
+          sale_id: string
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description: string
+          discount?: number
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          sale_id: string
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string
+          discount?: number
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          sale_id?: string
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sale_payments: {
+        Row: {
+          amount: number
+          change_amount: number
+          company_id: string
+          created_at: string
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          sale_id: string
+        }
+        Insert: {
+          amount?: number
+          change_amount?: number
+          company_id: string
+          created_at?: string
+          id?: string
+          method: Database["public"]["Enums"]["payment_method"]
+          sale_id: string
+        }
+        Update: {
+          amount?: number
+          change_amount?: number
+          company_id?: string
+          created_at?: string
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          sale_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_payments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_payments_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          branch_id: string | null
+          closed_at: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          discount: number
+          id: string
+          notes: string | null
+          number: number
+          register_id: string | null
+          status: Database["public"]["Enums"]["sale_status"]
+          subtotal: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          closed_at?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          discount?: number
+          id?: string
+          notes?: string | null
+          number?: number
+          register_id?: string | null
+          status?: Database["public"]["Enums"]["sale_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          closed_at?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          discount?: number
+          id?: string
+          notes?: string | null
+          number?: number
+          register_id?: string | null
+          status?: Database["public"]["Enums"]["sale_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_register_id_fkey"
+            columns: ["register_id"]
+            isOneToOne: false
+            referencedRelation: "cash_registers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           branch_id: string | null
@@ -532,6 +787,15 @@ export type Database = {
         | "rh"
         | "financeiro"
       company_status: "ativa" | "bloqueada" | "suspensa" | "trial" | "cancelada"
+      payment_method:
+        | "dinheiro"
+        | "pix"
+        | "credito"
+        | "debito"
+        | "fiado"
+        | "outro"
+      register_status: "aberto" | "fechado"
+      sale_status: "aberta" | "finalizada" | "cancelada"
       stock_movement_type: "entrada" | "saida" | "ajuste" | "perda"
     }
     CompositeTypes: {
@@ -671,6 +935,16 @@ export const Constants = {
         "financeiro",
       ],
       company_status: ["ativa", "bloqueada", "suspensa", "trial", "cancelada"],
+      payment_method: [
+        "dinheiro",
+        "pix",
+        "credito",
+        "debito",
+        "fiado",
+        "outro",
+      ],
+      register_status: ["aberto", "fechado"],
+      sale_status: ["aberta", "finalizada", "cancelada"],
       stock_movement_type: ["entrada", "saida", "ajuste", "perda"],
     },
   },
