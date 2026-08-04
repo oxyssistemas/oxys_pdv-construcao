@@ -68,16 +68,19 @@ function buildNav(session: SessionInfo | undefined): NavGroup[] {
   groups.push({
     title: "Operação",
     items: [
+      { label: "PDV", to: "/pdv", icon: ShoppingCart },
+      { label: "Vendas", to: "/vendas", icon: Receipt },
+      { label: "Caixa", to: "/caixa", icon: Wallet },
       { label: "Produtos", to: "/produtos", icon: Package },
       { label: "Estoque", to: "/estoque", icon: Boxes },
       { label: "Fornecedores", to: "/fornecedores", icon: Truck },
       { label: "Clientes", to: "/clientes", icon: Contact },
-      { label: "PDV", icon: ShoppingCart, soon: true },
       { label: "Financeiro", icon: Wallet, soon: true },
       { label: "Compras", icon: CreditCard, soon: true },
       { label: "Relatórios", icon: BarChart3, soon: true },
     ],
   });
+
 
 
 
