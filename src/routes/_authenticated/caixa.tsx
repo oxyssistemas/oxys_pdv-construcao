@@ -21,7 +21,7 @@ import {
 import { EmptyState, KpiCard, SectionCard } from "@/components/oxys/ui-blocks";
 import { CompanyPicker, useCompanyScope } from "@/components/oxys/company-scope";
 import { formatCurrency } from "@/lib/oxys";
-import { closeRegister, getOpenRegister, listRegisters } from "@/lib/pdv.functions";
+import { closeRegister, getOpenRegister, listRegisters, openRegister } from "@/lib/pdv.functions";
 
 export const Route = createFileRoute("/_authenticated/caixa")({
   head: () => ({
@@ -237,10 +237,7 @@ function OpenRegisterButton({ companyId, onDone }: { companyId: string; onDone: 
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("0");
   const [notes, setNotes] = useState("");
-  const doOpen = useServerFn(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    openRegisterFn,
-  );
+  const doOpen = useServerFn(openRegister);
 
   const mutation = useMutation({
     mutationFn: () =>
