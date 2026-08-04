@@ -7,6 +7,7 @@ import {
   Bell,
   Boxes,
   Building2,
+  ChevronDown,
   Contact,
   Truck,
   CreditCard,
