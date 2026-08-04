@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   Package,
+  Receipt,
   Search,
   Settings,
   ShoppingCart,
