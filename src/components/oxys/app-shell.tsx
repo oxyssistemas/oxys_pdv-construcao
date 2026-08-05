@@ -179,7 +179,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     queryFn: () => fetchSession(),
   });
 
-  const ownerAllowed = ["/dashboard", "/empresas", "/usuarios"];
+  const ownerAllowed = ["/dashboard", "/empresas", "/usuarios", "/crm"];
   useEffect(() => {
     if (session?.isOwner && !ownerAllowed.includes(pathname)) {
       navigate({ to: "/dashboard", replace: true });
