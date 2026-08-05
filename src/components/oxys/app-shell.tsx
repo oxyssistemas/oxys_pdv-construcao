@@ -169,11 +169,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const fetchSession = useServerFn(getSessionInfo);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const { data: session, isLoading } = useQuery({
     queryKey: ["session-info"],
     queryFn: () => fetchSession(),
   });
+
+  const ownerAllowed = ["/dashboard", "/empresas", "/usuarios"];
+  useEffect(() => {
+    if (session?.isOwner && !ownerAllowed.includes(pathname)) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [session?.isOwner, pathname]);
+
 
   const initials = (session?.fullName || session?.email || "?")
     .split(" ")
