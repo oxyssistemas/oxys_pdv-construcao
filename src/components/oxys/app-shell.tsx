@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   BarChart3,
   Bell,
@@ -51,11 +51,16 @@ function buildNav(session: SessionInfo | undefined): NavGroup[] {
     { title: "Geral", items: [{ label: "Dashboard", to: "/dashboard", icon: LayoutDashboard }] },
   ];
 
+  // Owner da plataforma: acesso restrito a empresas, usuários e ao próprio painel.
   if (session?.isOwner) {
     groups.push({
       title: "Plataforma",
-      items: [{ label: "Empresas", to: "/empresas", icon: Building2 }],
+      items: [
+        { label: "Empresas", to: "/empresas", icon: Building2 },
+        { label: "Usuários e perfis", to: "/usuarios", icon: Users },
+      ],
     });
+    return groups;
   }
 
   groups.push({
@@ -164,11 +169,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const fetchSession = useServerFn(getSessionInfo);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const { data: session, isLoading } = useQuery({
     queryKey: ["session-info"],
     queryFn: () => fetchSession(),
   });
+
+  const ownerAllowed = ["/dashboard", "/empresas", "/usuarios"];
+  useEffect(() => {
+    if (session?.isOwner && !ownerAllowed.includes(pathname)) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [session?.isOwner, pathname]);
+
 
   const initials = (session?.fullName || session?.email || "?")
     .split(" ")
