@@ -20,6 +20,7 @@ import {
   Settings,
   ShoppingCart,
   Store,
+  Target,
   Users,
   Wallet,
 } from "lucide-react";
