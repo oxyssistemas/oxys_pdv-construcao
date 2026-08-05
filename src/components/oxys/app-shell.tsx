@@ -51,11 +51,16 @@ function buildNav(session: SessionInfo | undefined): NavGroup[] {
     { title: "Geral", items: [{ label: "Dashboard", to: "/dashboard", icon: LayoutDashboard }] },
   ];
 
+  // Owner da plataforma: acesso restrito a empresas, usuários e ao próprio painel.
   if (session?.isOwner) {
     groups.push({
       title: "Plataforma",
-      items: [{ label: "Empresas", to: "/empresas", icon: Building2 }],
+      items: [
+        { label: "Empresas", to: "/empresas", icon: Building2 },
+        { label: "Usuários e perfis", to: "/usuarios", icon: Users },
+      ],
     });
+    return groups;
   }
 
   groups.push({
