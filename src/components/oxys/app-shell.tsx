@@ -20,6 +20,7 @@ import {
   Settings,
   ShoppingCart,
   Store,
+  Target,
   Users,
   Wallet,
 } from "lucide-react";
@@ -51,17 +52,19 @@ function buildNav(session: SessionInfo | undefined): NavGroup[] {
     { title: "Geral", items: [{ label: "Dashboard", to: "/dashboard", icon: LayoutDashboard }] },
   ];
 
-  // Owner da plataforma: acesso restrito a empresas, usuários e ao próprio painel.
+  // Owner da plataforma: acesso restrito a empresas, usuários e ao próprio CRM.
   if (session?.isOwner) {
     groups.push({
       title: "Plataforma",
       items: [
         { label: "Empresas", to: "/empresas", icon: Building2 },
         { label: "Usuários e perfis", to: "/usuarios", icon: Users },
+        { label: "CRM", to: "/crm", icon: Target },
       ],
     });
     return groups;
   }
+
 
   groups.push({
     title: "Organização",
@@ -176,7 +179,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     queryFn: () => fetchSession(),
   });
 
-  const ownerAllowed = ["/dashboard", "/empresas", "/usuarios"];
+  const ownerAllowed = ["/dashboard", "/empresas", "/usuarios", "/crm"];
   useEffect(() => {
     if (session?.isOwner && !ownerAllowed.includes(pathname)) {
       navigate({ to: "/dashboard", replace: true });
