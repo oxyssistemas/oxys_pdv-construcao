@@ -202,6 +202,71 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_leads: {
+        Row: {
+          company_id: string | null
+          company_name: string | null
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          estimated_value: number
+          id: string
+          name: string
+          next_action: string | null
+          next_action_at: string | null
+          notes: string | null
+          owner_id: string
+          phone: string | null
+          source: string | null
+          stage: Database["public"]["Enums"]["crm_stage"]
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          estimated_value?: number
+          id?: string
+          name: string
+          next_action?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          owner_id: string
+          phone?: string | null
+          source?: string | null
+          stage?: Database["public"]["Enums"]["crm_stage"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          estimated_value?: number
+          id?: string
+          name?: string
+          next_action?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+          source?: string | null
+          stage?: Database["public"]["Enums"]["crm_stage"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_leads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -787,6 +852,13 @@ export type Database = {
         | "rh"
         | "financeiro"
       company_status: "ativa" | "bloqueada" | "suspensa" | "trial" | "cancelada"
+      crm_stage:
+        | "novo"
+        | "contato"
+        | "proposta"
+        | "negociacao"
+        | "ganho"
+        | "perdido"
       payment_method:
         | "dinheiro"
         | "pix"
@@ -935,6 +1007,14 @@ export const Constants = {
         "financeiro",
       ],
       company_status: ["ativa", "bloqueada", "suspensa", "trial", "cancelada"],
+      crm_stage: [
+        "novo",
+        "contato",
+        "proposta",
+        "negociacao",
+        "ganho",
+        "perdido",
+      ],
       payment_method: [
         "dinheiro",
         "pix",
