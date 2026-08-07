@@ -271,7 +271,17 @@ function LoginPage() {
               </p>
             ) : null}
 
-            <Button type="submit" disabled={loading} className="h-11 w-full text-sm font-semibold">
+            {isLocked ? (
+              <p className="rounded-lg bg-warning-soft px-3 py-2 text-sm text-muted-foreground">
+                Login bloqueado por segurança. Liberado em {formatWait(waitSeconds)}.
+              </p>
+            ) : null}
+
+            <Button
+              type="submit"
+              disabled={loading || isLocked}
+              className="h-11 w-full text-sm font-semibold"
+            >
               {loading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
               Entrar
               {!loading ? <ArrowRight className="ml-2 size-4" /> : null}
