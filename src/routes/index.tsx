@@ -164,9 +164,7 @@ function LoginPage() {
       const fails = local.fails + 1;
       if (fails >= MAX_ATTEMPTS) {
         lockFor(LOCK_MS);
-        setError(
-          `Muitas tentativas inválidas. Login bloqueado por ${MAX_ATTEMPTS === 0 ? "" : "15 min"}.`,
-        );
+        setError("Muitas tentativas inválidas. Login bloqueado por 15 min.");
       } else {
         writeLock({ fails, until: 0 });
         setError(
