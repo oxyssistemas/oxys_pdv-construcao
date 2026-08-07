@@ -329,6 +329,30 @@ export type Database = {
           },
         ]
       }
+      login_attempts: {
+        Row: {
+          created_at: string
+          email_key: string
+          id: string
+          ip: string | null
+          success: boolean
+        }
+        Insert: {
+          created_at?: string
+          email_key: string
+          id?: string
+          ip?: string | null
+          success?: boolean
+        }
+        Update: {
+          created_at?: string
+          email_key?: string
+          id?: string
+          ip?: string | null
+          success?: boolean
+        }
+        Relationships: []
+      }
       product_categories: {
         Row: {
           company_id: string

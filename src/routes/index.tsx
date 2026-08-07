@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowRight, Building2, Loader2, ShieldCheck, TrendingUp, Users } from "lucide-react";
@@ -15,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { checkLoginAllowed, recordLoginAttempt } from "@/lib/login-guard.functions";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,13 +47,50 @@ const showcase = [
   { month: "Jun", total: 68 },
 ];
 
+const MAX_ATTEMPTS = 5;
+const LOCK_MS = 15 * 60 * 1000;
+const LOCK_KEY = "oxys.login.lock";
+
+type LocalLock = { fails: number; until: number };
+
+function readLock(): LocalLock {
+  if (typeof window === "undefined") return { fails: 0, until: 0 };
+  try {
+    const raw = window.localStorage.getItem(LOCK_KEY);
+    if (!raw) return { fails: 0, until: 0 };
+    const parsed = JSON.parse(raw) as LocalLock;
+    if (parsed.until && parsed.until < Date.now()) return { fails: 0, until: 0 };
+    return { fails: Number(parsed.fails) || 0, until: Number(parsed.until) || 0 };
+  } catch {
+    return { fails: 0, until: 0 };
+  }
+}
+
+function writeLock(value: LocalLock) {
+  try {
+    window.localStorage.setItem(LOCK_KEY, JSON.stringify(value));
+  } catch {
+    /* storage indisponível */
+  }
+}
+
+function formatWait(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m > 0 ? `${m}min ${String(s).padStart(2, "0")}s` : `${s}s`;
+}
+
 function LoginPage() {
   const navigate = useNavigate();
+  const checkAllowed = useServerFn(checkLoginAllowed);
+  const recordAttempt = useServerFn(recordLoginAttempt);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lockedUntil, setLockedUntil] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     let active = true;
@@ -62,30 +102,85 @@ function LoginPage() {
     };
   }, [navigate]);
 
+  useEffect(() => {
+    setLockedUntil(readLock().until);
+  }, []);
+
+  useEffect(() => {
+    if (!lockedUntil) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [lockedUntil]);
+
+  const waitSeconds = lockedUntil > now ? Math.ceil((lockedUntil - now) / 1000) : 0;
+  const isLocked = waitSeconds > 0;
+
+  function lockFor(ms: number) {
+    const until = Date.now() + ms;
+    writeLock({ fails: MAX_ATTEMPTS, until });
+    setLockedUntil(until);
+    setNow(Date.now());
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
+
+    if (isLocked) {
+      setError(`Muitas tentativas. Tente novamente em ${formatWait(waitSeconds)}.`);
+      return;
+    }
 
     if (!email.trim() || password.length < 6) {
       setError("Informe um email válido e uma senha com pelo menos 6 caracteres.");
       return;
     }
 
+    const normalized = email.trim().toLowerCase();
     setLoading(true);
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-    setLoading(false);
 
-    if (signInError) {
-      setError("Não foi possível entrar. Verifique suas credenciais.");
+    const guard = await checkAllowed({ data: { email: normalized } }).catch(() => null);
+    if (guard && !guard.allowed) {
+      setLoading(false);
+      lockFor(guard.retryAfterSeconds * 1000);
+      setError(
+        `Conta temporariamente bloqueada por excesso de tentativas. Aguarde ${formatWait(
+          guard.retryAfterSeconds,
+        )}.`,
+      );
       return;
     }
 
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: normalized,
+      password,
+    });
+
+    void recordAttempt({ data: { email: normalized, success: !signInError } }).catch(() => null);
+    setLoading(false);
+
+    if (signInError) {
+      const local = readLock();
+      const fails = local.fails + 1;
+      if (fails >= MAX_ATTEMPTS) {
+        lockFor(LOCK_MS);
+        setError("Muitas tentativas inválidas. Login bloqueado por 15 min.");
+      } else {
+        writeLock({ fails, until: 0 });
+        setError(
+          `Não foi possível entrar. Verifique suas credenciais. Tentativas restantes: ${
+            MAX_ATTEMPTS - fails
+          }.`,
+        );
+      }
+      return;
+    }
+
+    writeLock({ fails: 0, until: 0 });
     toast.success("Bem-vindo de volta!");
     navigate({ to: "/dashboard", replace: true });
   }
+
 
   async function handleReset() {
     if (!email.trim()) {
@@ -176,7 +271,17 @@ function LoginPage() {
               </p>
             ) : null}
 
-            <Button type="submit" disabled={loading} className="h-11 w-full text-sm font-semibold">
+            {isLocked ? (
+              <p className="rounded-lg bg-warning-soft px-3 py-2 text-sm text-muted-foreground">
+                Login bloqueado por segurança. Liberado em {formatWait(waitSeconds)}.
+              </p>
+            ) : null}
+
+            <Button
+              type="submit"
+              disabled={loading || isLocked}
+              className="h-11 w-full text-sm font-semibold"
+            >
               {loading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
               Entrar
               {!loading ? <ArrowRight className="ml-2 size-4" /> : null}
