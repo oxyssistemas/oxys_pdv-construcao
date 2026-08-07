@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { checkLoginAllowed, recordLoginAttempt } from "@/lib/login-guard.functions";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
