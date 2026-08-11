@@ -262,9 +262,8 @@ export const updateMemberRole = createServerFn({ method: "POST" })
     if (roleError) throw new Error(roleError.message);
     if (!allowed) throw new Error("Sem permissão para alterar níveis nesta empresa.");
 
-    if (data.id === context.userId) {
-      // evita rebaixar a si mesmo por engano não é bloqueado, mas o vínculo é validado abaixo
-    }
+
+
 
     const { error } = await context.supabase
       .from("user_roles")
