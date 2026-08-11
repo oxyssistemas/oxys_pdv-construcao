@@ -858,11 +858,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_min_rank: {
+        Args: { _company_id: string; _min: number; _user_id: string }
+        Returns: boolean
+      }
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
       is_platform_owner: { Args: { _user_id: string }; Returns: boolean }
+      role_rank: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: number
+      }
       shares_company: { Args: { _a: string; _b: string }; Returns: boolean }
     }
     Enums: {
