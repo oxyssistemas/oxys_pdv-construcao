@@ -242,6 +242,39 @@ export const createMember = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const updateMemberRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        companyId: z.string().uuid(),
+        role: z.enum(APP_ROLES).refine((r) => r !== "owner", "Perfil inválido"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: allowed, error: roleError } = await context.supabase.rpc("has_company_role", {
+      _user_id: context.userId,
+      _company_id: data.companyId,
+      _role: "gerente",
+    });
+    if (roleError) throw new Error(roleError.message);
+    if (!allowed) throw new Error("Sem permissão para alterar níveis nesta empresa.");
+
+    if (data.id === context.userId) {
+      // evita rebaixar a si mesmo por engano não é bloqueado, mas o vínculo é validado abaixo
+    }
+
+    const { error } = await context.supabase
+      .from("user_roles")
+      .update({ role: data.role })
+      .eq("id", data.id)
+      .eq("company_id", data.companyId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const removeMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
@@ -250,6 +283,7 @@ export const removeMember = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const saveBranch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
