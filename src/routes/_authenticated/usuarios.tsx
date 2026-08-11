@@ -41,9 +41,11 @@ import {
   listCompanies,
   listMembers,
   removeMember,
+  updateMemberRole,
 } from "@/lib/oxys.functions";
 import { APP_ROLES, type AppRole } from "@/lib/oxys-schema";
-import { ROLE_LABELS } from "@/lib/oxys";
+import { ROLE_LABELS, ROLE_RANK, ROLE_SCOPE } from "@/lib/oxys";
+
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
