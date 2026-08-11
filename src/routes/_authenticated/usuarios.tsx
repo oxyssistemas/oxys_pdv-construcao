@@ -125,6 +125,7 @@ function UsersPage() {
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (!companyId) return setFormError("Selecione a empresa do usuário.");
     if (form.fullName.trim().length < 2) return setFormError("Informe o nome completo.");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim()))
       return setFormError("Informe um email válido.");
@@ -132,6 +133,7 @@ function UsersPage() {
     setFormError(null);
     createMutation.mutate();
   }
+
 
   if (options.length === 0) {
     return (
