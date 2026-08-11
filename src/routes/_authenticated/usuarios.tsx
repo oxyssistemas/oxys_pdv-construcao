@@ -237,10 +237,26 @@ function UsersPage() {
           <DialogHeader>
             <DialogTitle>Novo usuário</DialogTitle>
             <DialogDescription>
-              O acesso é criado já confirmado e vinculado à empresa selecionada.
+              Todo usuário é obrigatoriamente vinculado a uma empresa e só enxerga os dados dela,
+              conforme o nível de acesso escolhido.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submit} className="space-y-4" noValidate>
+            <div className="space-y-2">
+              <Label>Empresa vinculada</Label>
+              <Select value={companyId} onValueChange={setCompanyId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {options.map((o) => (
+                    <SelectItem key={o.id} value={o.id}>
+                      {o.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="fullName">Nome completo</Label>
               <Input
@@ -250,6 +266,7 @@ function UsersPage() {
                 maxLength={120}
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="userEmail">Email</Label>
               <Input
