@@ -113,6 +113,17 @@ function UsersPage() {
     onError: () => toast.error("Não foi possível criar o usuário. Verifique suas permissões."),
   });
 
+  const roleMutation = useMutation({
+    mutationFn: (vars: { id: string; role: AppRole }) =>
+      changeRole({ data: { id: vars.id, companyId, role: vars.role } }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["members", companyId] });
+      toast.success("Nível atualizado. As permissões já valem na próxima consulta.");
+    },
+    onError: () => toast.error("Não foi possível alterar o nível. Verifique suas permissões."),
+    onSettled: () => setPendingId(null),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => dropMember({ data: { id } }),
     onSuccess: () => {
@@ -122,6 +133,7 @@ function UsersPage() {
     onError: () => toast.error("Não foi possível remover o acesso."),
     onSettled: () => setDeleteId(null),
   });
+
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
