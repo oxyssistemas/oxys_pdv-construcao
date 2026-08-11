@@ -51,6 +51,29 @@ export const ROLE_LABELS: Record<string, string> = {
   financeiro: "Financeiro",
 };
 
+/** Mesma escala usada nas políticas de RLS (public.role_rank). */
+export const ROLE_RANK: Record<string, number> = {
+  owner: 100,
+  gerente: 80,
+  supervisor: 60,
+  financeiro: 50,
+  rh: 50,
+  estoque: 40,
+  caixa: 30,
+  atendente: 20,
+};
+
+export const ROLE_SCOPE: Record<string, string> = {
+  gerente: "Acesso total da empresa, incluindo equipe e cadastros",
+  supervisor: "Operação completa e cadastro de fornecedores",
+  financeiro: "Vendas, caixa e clientes",
+  rh: "Equipe e dados administrativos",
+  estoque: "Produtos, categorias e movimentações de estoque",
+  caixa: "PDV, caixa, vendas e clientes",
+  atendente: "Consulta de vendas e produtos da empresa",
+};
+
+
 export const STATUS_LABELS: Record<string, string> = {
   ativa: "Ativa",
   bloqueada: "Bloqueada",

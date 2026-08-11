@@ -41,9 +41,11 @@ import {
   listCompanies,
   listMembers,
   removeMember,
+  updateMemberRole,
 } from "@/lib/oxys.functions";
 import { APP_ROLES, type AppRole } from "@/lib/oxys-schema";
-import { ROLE_LABELS } from "@/lib/oxys";
+import { ROLE_LABELS, ROLE_RANK, ROLE_SCOPE } from "@/lib/oxys";
+
 
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
@@ -69,10 +71,13 @@ function UsersPage() {
   const fetchMembers = useServerFn(listMembers);
   const addMember = useServerFn(createMember);
   const dropMember = useServerFn(removeMember);
+  const changeRole = useServerFn(updateMemberRole);
 
   const [companyId, setCompanyId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
   const [form, setForm] = useState({ fullName: "", email: "", password: "", role: "caixa" as AppRole });
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -113,6 +118,17 @@ function UsersPage() {
     onError: () => toast.error("Não foi possível criar o usuário. Verifique suas permissões."),
   });
 
+  const roleMutation = useMutation({
+    mutationFn: (vars: { id: string; role: AppRole }) =>
+      changeRole({ data: { id: vars.id, companyId, role: vars.role } }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["members", companyId] });
+      toast.success("Nível atualizado. As permissões já valem na próxima consulta.");
+    },
+    onError: () => toast.error("Não foi possível alterar o nível. Verifique suas permissões."),
+    onSettled: () => setPendingId(null),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => dropMember({ data: { id } }),
     onSuccess: () => {
@@ -122,6 +138,7 @@ function UsersPage() {
     onError: () => toast.error("Não foi possível remover o acesso."),
     onSettled: () => setDeleteId(null),
   });
+
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -192,11 +209,11 @@ function UsersPage() {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-sm">
+            <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="pb-3 font-medium">Colaborador</th>
-                  <th className="pb-3 font-medium">Perfil</th>
+                  <th className="pb-3 font-medium">Nível hierárquico</th>
                   <th className="pb-3 text-right font-medium">Ações</th>
                 </tr>
               </thead>
@@ -208,9 +225,35 @@ function UsersPage() {
                       <p className="text-xs text-muted-foreground">{m.email}</p>
                     </td>
                     <td className="py-3 pr-3">
-                      <span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-medium text-primary">
-                        {ROLE_LABELS[m.role] ?? m.role}
-                      </span>
+                      {m.role === "owner" ? (
+                        <span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-medium text-primary">
+                          {ROLE_LABELS[m.role]}
+                        </span>
+                      ) : (
+                        <div className="space-y-1">
+                          <Select
+                            value={m.role}
+                            disabled={roleMutation.isPending && pendingId === m.id}
+                            onValueChange={(v) => {
+                              if (v === m.role) return;
+                              setPendingId(m.id);
+                              roleMutation.mutate({ id: m.id, role: v as AppRole });
+                            }}
+                          >
+                            <SelectTrigger className="h-9 w-48 bg-surface-2">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ASSIGNABLE_ROLES.map((r) => (
+                                <SelectItem key={r} value={r}>
+                                  {ROLE_LABELS[r] ?? r} · nível {ROLE_RANK[r]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">{ROLE_SCOPE[m.role]}</p>
+                        </div>
+                      )}
                     </td>
                     <td className="py-3">
                       <div className="flex justify-end">
@@ -228,6 +271,7 @@ function UsersPage() {
                 ))}
               </tbody>
             </table>
+
           </div>
         )}
       </SectionCard>
