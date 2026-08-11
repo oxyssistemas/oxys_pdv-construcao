@@ -192,11 +192,11 @@ function UsersPage() {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-sm">
+            <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="pb-3 font-medium">Colaborador</th>
-                  <th className="pb-3 font-medium">Perfil</th>
+                  <th className="pb-3 font-medium">Nível hierárquico</th>
                   <th className="pb-3 text-right font-medium">Ações</th>
                 </tr>
               </thead>
@@ -208,9 +208,35 @@ function UsersPage() {
                       <p className="text-xs text-muted-foreground">{m.email}</p>
                     </td>
                     <td className="py-3 pr-3">
-                      <span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-medium text-primary">
-                        {ROLE_LABELS[m.role] ?? m.role}
-                      </span>
+                      {m.role === "owner" ? (
+                        <span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-medium text-primary">
+                          {ROLE_LABELS[m.role]}
+                        </span>
+                      ) : (
+                        <div className="space-y-1">
+                          <Select
+                            value={m.role}
+                            disabled={roleMutation.isPending && pendingId === m.id}
+                            onValueChange={(v) => {
+                              if (v === m.role) return;
+                              setPendingId(m.id);
+                              roleMutation.mutate({ id: m.id, role: v as AppRole });
+                            }}
+                          >
+                            <SelectTrigger className="h-9 w-48 bg-surface-2">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ASSIGNABLE_ROLES.map((r) => (
+                                <SelectItem key={r} value={r}>
+                                  {ROLE_LABELS[r] ?? r} · nível {ROLE_RANK[r]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">{ROLE_SCOPE[m.role]}</p>
+                        </div>
+                      )}
                     </td>
                     <td className="py-3">
                       <div className="flex justify-end">
@@ -228,6 +254,7 @@ function UsersPage() {
                 ))}
               </tbody>
             </table>
+
           </div>
         )}
       </SectionCard>
