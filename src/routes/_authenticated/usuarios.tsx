@@ -71,10 +71,13 @@ function UsersPage() {
   const fetchMembers = useServerFn(listMembers);
   const addMember = useServerFn(createMember);
   const dropMember = useServerFn(removeMember);
+  const changeRole = useServerFn(updateMemberRole);
 
   const [companyId, setCompanyId] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
   const [form, setForm] = useState({ fullName: "", email: "", password: "", role: "caixa" as AppRole });
   const [formError, setFormError] = useState<string | null>(null);
 
