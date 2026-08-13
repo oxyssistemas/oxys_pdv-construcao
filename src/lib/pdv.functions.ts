@@ -292,3 +292,128 @@ export const getSalesStats = createServerFn({ method: "POST" })
       daily,
     };
   });
+
+export const createCashMovement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => cashMovementInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("cash_movements").insert({
+      company_id: data.companyId,
+      register_id: data.register_id,
+      type: data.type,
+      amount: data.amount,
+      reason: data.reason ?? null,
+      created_by: context.userId,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getRegisterReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => idInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: register, error } = await context.supabase
+      .from("cash_registers")
+      .select("*")
+      .eq("id", data.id)
+      .single();
+    if (error) throw new Error(error.message);
+
+    const [salesRes, movRes] = await Promise.all([
+      context.supabase
+        .from("sales")
+        .select("id, number, total, status, created_at")
+        .eq("register_id", data.id)
+        .order("created_at"),
+      context.supabase
+        .from("cash_movements")
+        .select("id, type, amount, reason, created_at")
+        .eq("register_id", data.id)
+        .order("created_at"),
+    ]);
+    if (salesRes.error) throw new Error(salesRes.error.message);
+    if (movRes.error) throw new Error(movRes.error.message);
+
+    const sales = salesRes.data ?? [];
+    const finalized = sales.filter((s) => s.status === "finalizada");
+    const saleIds = finalized.map((s) => s.id);
+
+    let payments: { method: string; amount: number; change_amount: number; sale_id: string }[] = [];
+    if (saleIds.length > 0) {
+      const { data: pay, error: payError } = await context.supabase
+        .from("sale_payments")
+        .select("sale_id, method, amount, change_amount")
+        .in("sale_id", saleIds);
+      if (payError) throw new Error(payError.message);
+      payments = (pay ?? []).map((p) => ({
+        sale_id: p.sale_id,
+        method: String(p.method),
+        amount: Number(p.amount),
+        change_amount: Number(p.change_amount),
+      }));
+    }
+
+    const byMethod = new Map<string, number>();
+    for (const p of payments) {
+      byMethod.set(p.method, (byMethod.get(p.method) ?? 0) + p.amount - p.change_amount);
+    }
+
+    const movements = (movRes.data ?? []).map((m) => ({
+      id: m.id,
+      type: String(m.type),
+      amount: Number(m.amount),
+      reason: m.reason,
+      created_at: m.created_at,
+    }));
+    const supply = movements
+      .filter((m) => m.type === "suprimento")
+      .reduce((sum, m) => sum + m.amount, 0);
+    const withdrawal = movements
+      .filter((m) => m.type === "sangria")
+      .reduce((sum, m) => sum + m.amount, 0);
+    const cash = byMethod.get("dinheiro") ?? 0;
+    const revenue = finalized.reduce((sum, s) => sum + Number(s.total), 0);
+    const expected = Number(register.opening_amount) + cash + supply - withdrawal;
+
+    return {
+      register: {
+        id: register.id,
+        status: register.status,
+        opening_amount: Number(register.opening_amount),
+        closing_amount: register.closing_amount === null ? null : Number(register.closing_amount),
+        opened_at: register.opened_at,
+        closed_at: register.closed_at,
+        notes: register.notes,
+      },
+      sales: finalized.map((s) => ({
+        id: s.id,
+        number: Number(s.number),
+        total: Number(s.total),
+        created_at: s.created_at,
+      })),
+      canceledCount: sales.length - finalized.length,
+      movements,
+      byMethod: Array.from(byMethod.entries()).map(([method, total]) => ({ method, total })),
+      totals: { revenue, cash, supply, withdrawal, expected },
+    };
+  });
+
+export const listCashMovements = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => idInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("cash_movements")
+      .select("id, type, amount, reason, created_at")
+      .eq("register_id", data.id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((m) => ({
+      id: m.id,
+      type: String(m.type),
+      amount: Number(m.amount),
+      reason: m.reason,
+      created_at: m.created_at,
+    }));
+  });
