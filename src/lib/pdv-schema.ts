@@ -80,3 +80,21 @@ export type CartLine = {
 export function lineTotal(line: { quantity: number; unit_price: number; discount: number }) {
   return Math.max(0, line.quantity * line.unit_price - line.discount);
 }
+
+export const CASH_MOVEMENT_TYPES = ["sangria", "suprimento"] as const;
+export type CashMovementType = (typeof CASH_MOVEMENT_TYPES)[number];
+
+export const CASH_MOVEMENT_LABELS: Record<CashMovementType, string> = {
+  sangria: "Sangria",
+  suprimento: "Suprimento",
+};
+
+export const cashMovementInput = z.object({
+  companyId: z.string().uuid(),
+  register_id: z.string().uuid(),
+  type: z.enum(CASH_MOVEMENT_TYPES),
+  amount: z.number().min(0.01).max(99999999),
+  reason: nullableText(240),
+});
+
+export type CashMovementInput = z.infer<typeof cashMovementInput>;

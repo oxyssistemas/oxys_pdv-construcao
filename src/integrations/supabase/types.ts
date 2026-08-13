@@ -64,6 +64,54 @@ export type Database = {
           },
         ]
       }
+      cash_movements: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          reason: string | null
+          register_id: string
+          type: Database["public"]["Enums"]["cash_movement_type"]
+        }
+        Insert: {
+          amount: number
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason?: string | null
+          register_id: string
+          type: Database["public"]["Enums"]["cash_movement_type"]
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason?: string | null
+          register_id?: string
+          type?: Database["public"]["Enums"]["cash_movement_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_movements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_movements_register_id_fkey"
+            columns: ["register_id"]
+            isOneToOne: false
+            referencedRelation: "cash_registers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cash_registers: {
         Row: {
           branch_id: string | null
@@ -883,6 +931,7 @@ export type Database = {
         | "estoque"
         | "rh"
         | "financeiro"
+      cash_movement_type: "sangria" | "suprimento"
       company_status: "ativa" | "bloqueada" | "suspensa" | "trial" | "cancelada"
       crm_stage:
         | "novo"
@@ -1038,6 +1087,7 @@ export const Constants = {
         "rh",
         "financeiro",
       ],
+      cash_movement_type: ["sangria", "suprimento"],
       company_status: ["ativa", "bloqueada", "suspensa", "trial", "cancelada"],
       crm_stage: [
         "novo",
