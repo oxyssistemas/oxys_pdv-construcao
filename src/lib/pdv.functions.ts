@@ -92,7 +92,19 @@ export const closeRegister = createServerFn({ method: "POST" })
       );
     }
 
-    const expected = Number(register.opening_amount) + cash;
+    const { data: movements, error: movError } = await context.supabase
+      .from("cash_movements")
+      .select("type, amount")
+      .eq("register_id", data.id);
+    if (movError) throw new Error(movError.message);
+    const supply = (movements ?? [])
+      .filter((m) => m.type === "suprimento")
+      .reduce((sum, m) => sum + Number(m.amount), 0);
+    const withdrawal = (movements ?? [])
+      .filter((m) => m.type === "sangria")
+      .reduce((sum, m) => sum + Number(m.amount), 0);
+
+    const expected = Number(register.opening_amount) + cash + supply - withdrawal;
     const { error } = await context.supabase
       .from("cash_registers")
       .update({
