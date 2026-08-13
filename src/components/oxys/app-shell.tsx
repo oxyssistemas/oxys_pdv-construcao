@@ -47,7 +47,28 @@ import { cn } from "@/lib/utils";
 type NavItem = { label: string; to?: string; icon: typeof LayoutDashboard; soon?: boolean };
 type NavGroup = { title: string; items: NavItem[] };
 
+export function maxRank(session: SessionInfo | undefined) {
+  if (!session) return 0;
+  if (session.isOwner) return 100;
+  return session.memberships.reduce((max, m) => Math.max(max, ROLE_RANK[m.role] ?? 0), 0);
+}
+
+export const OPERATOR_ALLOWED = ["/pdv", "/caixa"];
+
 function buildNav(session: SessionInfo | undefined): NavGroup[] {
+  // Operador de frente (caixa/atendente): somente PDV e controle de caixa.
+  if (session && !session.isOwner && maxRank(session) <= 30) {
+    return [
+      {
+        title: "Frente de caixa",
+        items: [
+          { label: "PDV", to: "/pdv", icon: ShoppingCart },
+          { label: "Caixa", to: "/caixa", icon: Wallet },
+        ],
+      },
+    ];
+  }
+
   const groups: NavGroup[] = [
     { title: "Geral", items: [{ label: "Dashboard", to: "/dashboard", icon: LayoutDashboard }] },
   ];
@@ -64,6 +85,8 @@ function buildNav(session: SessionInfo | undefined): NavGroup[] {
     });
     return groups;
   }
+
+
 
 
   groups.push({
