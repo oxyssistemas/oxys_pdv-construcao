@@ -41,7 +41,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getSessionInfo } from "@/lib/oxys.functions";
 import type { SessionInfo } from "@/lib/oxys-schema";
 
-import { ROLE_LABELS } from "@/lib/oxys";
+import { ROLE_LABELS, ROLE_RANK } from "@/lib/oxys";
 import { cn } from "@/lib/utils";
 
 type NavItem = { label: string; to?: string; icon: typeof LayoutDashboard; soon?: boolean };
@@ -203,11 +203,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
 
   const ownerAllowed = ["/dashboard", "/empresas", "/usuarios", "/crm"];
+  const isOperator = Boolean(session) && !session?.isOwner && maxRank(session) <= 30;
   useEffect(() => {
     if (session?.isOwner && !ownerAllowed.includes(pathname)) {
       navigate({ to: "/dashboard", replace: true });
+    } else if (isOperator && !OPERATOR_ALLOWED.includes(pathname)) {
+      navigate({ to: "/pdv", replace: true });
     }
-  }, [session?.isOwner, pathname]);
+  }, [session?.isOwner, isOperator, pathname]);
 
 
   const initials = (session?.fullName || session?.email || "?")
@@ -251,7 +254,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Sheet>
             <div className="hidden lg:block">
               <p className="text-xs text-muted-foreground">
-                {session?.isOwner ? "Portal Master" : "Portal da empresa"}
+                {session?.isOwner ? "Portal Master" : isOperator ? "Frente de caixa" : "Portal da empresa"}
               </p>
             </div>
           </div>
